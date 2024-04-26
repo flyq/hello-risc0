@@ -14,6 +14,8 @@
 
 use host::multiply;
 use methods::HELLO_GUEST_ID;
+use std::fs::File;
+use std::io::Write;
 
 fn main() {
     // Pick two numbers
@@ -21,6 +23,14 @@ fn main() {
 
     // Here is where one would send 'receipt' over the network...
     println!("receipt: {:?}", receipt.journal.decode::<u64>());
+
+    let buffer = serde_json::to_vec(&receipt).unwrap();
+    println!("buffer size: {}", buffer.len());
+    // let res: Receipt = serde_json::from_slice(&buffer).unwrap();
+
+    let mut file = File::create("receipt.bin").unwrap();
+    file.write_all(&buffer).unwrap();
+
     // Verify receipt, panic if it's wrong
     receipt.verify(HELLO_GUEST_ID).expect(
         "Code you have proven should successfully verify; did you specify the correct image ID?",
