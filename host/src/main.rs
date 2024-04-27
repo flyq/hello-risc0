@@ -30,6 +30,7 @@ fn main() {
 
     let mut file = File::create("receipt.bin").unwrap();
     file.write_all(&buffer).unwrap();
+    println!("HELLO_GUEST_ID: {:?}", HELLO_GUEST_ID);
 
     // Verify receipt, panic if it's wrong
     receipt.verify(HELLO_GUEST_ID).expect(
