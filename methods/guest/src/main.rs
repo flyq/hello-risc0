@@ -16,19 +16,23 @@
 #![no_std]
 
 use risc0_zkvm::guest::env;
+use sha2::{Digest, Sha256};
 
 risc0_zkvm::guest::entry!(main);
 
 fn main() {
     // Load the first number from the host
-    let a: u64 = env::read();
-    // Load the second number from the host
-    let b: u64 = env::read();
-    // Verify that neither of them are 1 (i.e. nontrivial factors)
-    if a == 1 || b == 1 {
-        panic!("Trivial factors")
-    }
+    let input: [u8; 32] = env::read();
+    let num_iters: u32 = env::read();
     // Compute the product while being careful with integer overflow
-    let product = a.checked_mul(b).expect("Integer overflow");
-    env::commit(&product);
+    let mut hash = input;
+
+    for _ in 0..num_iters {
+        let mut hasher = Sha256::new();
+        hasher.update(input);
+        let res = &hasher.finalize();
+        hash = Into::<[u8; 32]>::into(*res);
+    }
+
+    env::commit(&hash);
 }

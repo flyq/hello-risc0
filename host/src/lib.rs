@@ -23,7 +23,7 @@ use risc0_zkvm::{default_prover, ExecutorEnv, Receipt};
 // The factors a and b are kept secret.
 
 // Compute the product a*b inside the zkVM
-pub fn multiply(a: u64, b: u64) -> (Receipt, u64) {
+pub fn sha2_chain(a: [u8; 32], b: u32) -> (Receipt, [u8; 32]) {
     let env = ExecutorEnv::builder()
         // Send a & b to the guest
         .write(&a)
@@ -40,12 +40,12 @@ pub fn multiply(a: u64, b: u64) -> (Receipt, u64) {
     let receipt = prover.prove(env, HELLO_GUEST_ELF).unwrap();
 
     // Extract journal of receipt (i.e. output c, where c = a * b)
-    let c: u64 = receipt.journal.decode().expect(
+    let c: [u8; 32] = receipt.journal.decode().expect(
         "Journal output should deserialize into the same types (& order) that it was written",
     );
 
     // Report the product
-    println!("I know the factors of {}, and I can prove it!", c);
+    println!("hash result: {:?}, and I can prove it!", c);
 
     (receipt, c)
 }
@@ -56,12 +56,15 @@ mod tests {
 
     #[test]
     fn test_hello_world() {
-        const TEST_FACTOR_ONE: u64 = 17;
-        const TEST_FACTOR_TWO: u64 = 23;
-        let (_, result) = multiply(17, 23);
+        let bytes: [u8; 32] = [5; 32];
+        let num: u32 = 10;
+        let (_, result) = sha2_chain(bytes, num);
         assert_eq!(
             result,
-            TEST_FACTOR_ONE * TEST_FACTOR_TWO,
+            [
+                248, 73, 214, 115, 37, 250, 207, 4, 23, 123, 198, 99, 178, 220, 84, 64, 81, 131,
+                28, 88, 158, 245, 129, 212, 18, 242, 235, 164, 72, 52, 231, 124
+            ],
             "We expect the zkVM output to be the product of the inputs"
         )
     }

@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use host::multiply;
+use host::sha2_chain;
 use methods::HELLO_GUEST_ID;
 use std::fs::File;
 use std::io::Write;
 
 fn main() {
     // Pick two numbers
-    let (receipt, _) = multiply(17, 23);
+    let input: [u8; 32] = [5; 32];
+    let num_iters: u32 = 10;
+    let (receipt, _) = sha2_chain(input, num_iters);
 
     // Here is where one would send 'receipt' over the network...
-    println!("receipt: {:?}", receipt.journal.decode::<u64>());
+    println!("receipt: {:?}", receipt.journal.decode::<[u8; 32]>());
 
     let buffer = serde_json::to_vec(&receipt).unwrap();
     println!("buffer size: {}", buffer.len());
